@@ -631,9 +631,7 @@ p {
 </section>
 
 <!-- MUSIC -->
-<audio id="weddingMusic" loop preload="auto">
-  <source src="./wedding-music.mp3" type="audio/mpeg">
-</audio>
+<audio id="weddingMusic" src="wedding-music.mp3" loop preload="auto" autoplay></audio>
 
 <button class="music-button" id="musicButton" onclick="toggleMusic()">
   🎵 संगीत चालू करें
@@ -677,35 +675,45 @@ setInterval(updateCountdown, 1000);
 const weddingMusic = document.getElementById("weddingMusic");
 const musicButton = document.getElementById("musicButton");
 
+async function startWeddingMusic() {
+  try {
+    await weddingMusic.play();
+    musicButton.textContent = "⏸ संगीत बंद करें";
+    return true;
+  } catch (error) {
+    musicButton.textContent = "🎵 संगीत चालू करने के लिए स्क्रीन छुएँ";
+    return false;
+  }
+}
+
 async function toggleMusic() {
   if (weddingMusic.paused) {
-    try {
-      await weddingMusic.play();
-      musicButton.textContent = "⏸ संगीत बंद करें";
-    } catch (error) {
-      alert("गाना नहीं चल पाया। कृपया music file का नाम और location जाँचें।");
-    }
+    await startWeddingMusic();
   } else {
     weddingMusic.pause();
     musicButton.textContent = "🎵 संगीत चालू करें";
   }
 }
 
-/* Page open होने पर autoplay की कोशिश */
-window.addEventListener("load", async () => {
-  try {
-    await weddingMusic.play();
-    musicButton.textContent = "⏸ संगीत बंद करें";
-  } catch (error) {
-    musicButton.textContent = "🎵 संगीत चालू करें";
+// Try autoplay when the card opens. If the browser blocks sound,
+// start it on the visitor's first tap anywhere except the music button.
+window.addEventListener("load", () => {
+  startWeddingMusic();
+}, { once: true });
+
+document.addEventListener("pointerdown", function startMusicOnFirstTap(event) {
+  if (event.target.closest("#musicButton")) return;
+  if (weddingMusic.paused) {
+    startWeddingMusic();
   }
-});
+  document.removeEventListener("pointerdown", startMusicOnFirstTap);
+}, { once: true });
 
 
 /* CONTINUOUS SLOW AUTO SCROLL */
 
 const AUTO_PAUSE_TIME = 5000;
-const SCROLL_SPEED = 18; // pixels per second
+const SCROLL_SPEED = 28; // pixels per second
 
 let autoScrollPaused = false;
 let resumeTimer = null;
